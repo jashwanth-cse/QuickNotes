@@ -68,7 +68,7 @@
     }
 
     .note-form button {
-      background: #0072ff;
+      background: #053167;
       color: white;
       border: none;
       cursor: pointer;
@@ -76,11 +76,20 @@
 
     .notes-container {
       padding: 1rem 2rem;
-      display: grid;
       gap: 1rem;
     }
 
-    .card-view .note {
+    .card-view {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .list-view {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .note {
       background: var(--card-light);
       padding: 1rem;
       border-radius: 10px;
@@ -89,22 +98,8 @@
       animation: fadeIn 0.5s ease;
     }
 
-
-    .list-view {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .list-view .note {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-light);
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: background 0.5s;
-      animation: slideIn 0.4s ease;
+    body.dark .note {
+      background: var(--card-dark);
     }
 
     .note-content {
@@ -145,14 +140,15 @@
       color: gray;
     }
 
+    .timestamp {
+      font-size: 12px;
+      color: gray;
+      margin-left: 28px;
+    }
+
     @keyframes fadeIn {
       from {opacity: 0; transform: translateY(20px);}
       to {opacity: 1; transform: translateY(0);}
-    }
-
-    @keyframes slideIn {
-      from {opacity: 0; transform: translateX(-30px);}
-      to {opacity: 1; transform: translateX(0);}
     }
 
     @media screen and (max-width: 600px) {
@@ -210,6 +206,11 @@
     let darkMode = false;
     let cardView = true;
 
+    const formatTimestamp = (dateStr) => {
+      const date = new Date(dateStr);
+      return date.toLocaleString();
+    };
+
     const loadNotes = () => {
       const notes = JSON.parse(localStorage.getItem('notes')) || [];
       notesContainer.innerHTML = '';
@@ -221,6 +222,7 @@
             <span class="note-index">#${index + 1}</span>
             <input class="editable" value="${note.title}" oninput="editTitle(${index}, this.value)" />
           </div>
+          <div class="timestamp">Created: ${formatTimestamp(note.timestamp)}</div>
           <div class="note-content">
             <textarea class="editable" oninput="editContent(${index}, this.value)">${note.content}</textarea>
           </div>
@@ -234,13 +236,14 @@
     };
 
     const addNote = () => {
-      const title = document.getElementById('note-title').value;
-      const content = document.getElementById('note-content').value;
+      const title = document.getElementById('note-title').value.trim();
+      const content = document.getElementById('note-content').value.trim();
       const show = document.getElementById('show-content-default').checked;
       if (!title || !content) return alert('Fill in both fields.');
 
       const notes = JSON.parse(localStorage.getItem('notes')) || [];
-      notes.push({ title, content, show });
+      const timestamp = new Date().toISOString();
+      notes.push({ title, content, show, timestamp });
       localStorage.setItem('notes', JSON.stringify(notes));
       document.getElementById('note-title').value = '';
       document.getElementById('note-content').value = '';
