@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quick Notes</title>
+  <style>
+    :root {
+      --bg-light: #f5f5f5;
+      --bg-dark: #1c1c1e;
+      --text-light: #000;
+      --text-dark: #fff;
+      --card-light: #ffffff;
+      --card-dark: #2c2c2e;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      transition: background-color 0.5s ease, color 0.5s ease;
+      background-color: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .toggle-view,
+    .theme-toggle {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .note-form {
+      padding: 1rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .note-form input,
+    .note-form textarea,
+    .note-form button {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .note-form button {
+      background: #0072ff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .notes-container {
+      padding: 1rem 2rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .card-view .note {
+      background: var(--card-light);
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, background 0.5s;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .dark .card-view .note {
+      background: var(--card-dark);
+    }
+
+    .list-view {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-view .note {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-light);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: background 0.5s;
+      animation: slideIn 0.4s ease;
+    }
+
+    .dark .list-view .note {
+      background: var(--card-dark);
+    }
+
+    .note-content {
+      display: none;
+      margin-top: 0.5rem;
+    }
+
+    .note.show-content .note-content {
+      display: block;
+    }
+
+    .note-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .note-actions button {
+      font-size: 14px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #e0e0e0;
+    }
+
+    .editable {
+      background-color: transparent;
+      border: none;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .note-index {
+      font-weight: bold;
+      font-size: 14px;
+      margin-right: 10px;
+      color: gray;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    @keyframes slideIn {
+      from {opacity: 0; transform: translateX(-30px);}
+      to {opacity: 1; transform: translateX(0);}
+    }
+
+    @media screen and (max-width: 600px) {
+      .note-form input,
+      .note-form textarea,
+      .note-form button,
+      .note-actions button,
+      .editable {
+        font-size: 14px;
+        padding: 8px;
+      }
+
+      .note-form {
+        padding: 1rem;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .notes-container {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Quick Notes</h1>
+    <div class="controls">
+      <button class="toggle-view">List View</button>
+      <button class="theme-toggle">Dark Mode</button>
+    </div>
+  </header>
+
+  <div class="note-form">
+    <input type="text" id="note-title" placeholder="Note Title" />
+    <textarea id="note-content" placeholder="Note Content" rows="3"></textarea>
+    <label>
+      <input type="checkbox" id="show-content-default" />
+      Show content by default
+    </label>
+    <button onclick="addNote()">Add Note</button>
+  </div>
+
+  <div class="notes-container card-view" id="notes"></div>
+
+  <script>
+    const themeToggle = document.querySelector('.theme-toggle');
+    const viewToggle = document.querySelector('.toggle-view');
+    const notesContainer = document.getElementById('notes');
+
+    let darkMode = false;
+    let cardView = true;
+
+    const loadNotes = () => {
+      const notes = JSON.parse(localStorage.getItem('notes')) || [];
+      notesContainer.innerHTML = '';
+      notes.forEach((note, index) => {
+        const noteEl = document.createElement('div');
+        noteEl.className = `note ${note.show ? 'show-content' : ''}`;
+        noteEl.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="note-index">#${index + 1}</span>
+            <input class="editable" value="${note.title}" oninput="editTitle(${index}, this.value)" />
+          </div>
+          <div class="note-content">
+            <textarea class="editable" oninput="editContent(${index}, this.value)">${note.content}</textarea>
+          </div>
+          <div class="note-actions">
+            <button onclick="toggleContent(${index})">${note.show ? 'Hide' : 'Show'}</button>
+            <button onclick="deleteNote(${index})">Delete</button>
+          </div>
+        `;
+        notesContainer.appendChild(noteEl);
+      });
+    };
+
+    const addNote = () => {
+      const title = document.getElementById('note-title').value;
+      const content = document.getElementById('note-content').value;
+      const show = document.getElementById('show-content-default').checked;
+      if (!title || !content) return alert('Fill in both fields.');
+
+      const notes = JSON.parse(localStorage.getItem('notes')) || [];
+      notes.push({ title, content, show });
+      localStorage.setItem('notes', JSON.stringify(notes));
+      document.getElementById('note-title').value = '';
+      document.getElementById('note-content').value = '';
+      document.getElementById('show-content-default').checked = false;
+      loadNotes();
+    };
+
+    const toggleContent = (index) => {
+      const notes = JSON.parse(localStorage.getItem('notes'));
+      notes[index].show = !notes[index].show;
+      localStorage.setItem('notes', JSON.stringify(notes));
+      loadNotes();
+    };
+
+    const deleteNote = (index) => {
+      if (!confirm('Delete this note?')) return;
+      const notes = JSON.parse(localStorage.getItem('notes'));
+      notes.splice(index, 1);
+      localStorage.setItem('notes', JSON.stringify(notes));
+      loadNotes();
+    };
+
+    const editTitle = (index, newTitle) => {
+      const notes = JSON.parse(localStorage.getItem('notes'));
+      notes[index].title = newTitle;
+      localStorage.setItem('notes', JSON.stringify(notes));
+    };
+
+    const editContent = (index, newContent) => {
+      const notes = JSON.parse(localStorage.getItem('notes'));
+      notes[index].content = newContent;
+      localStorage.setItem('notes', JSON.stringify(notes));
+    };
+
+    themeToggle.onclick = () => {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark', darkMode);
+      themeToggle.textContent = darkMode ? 'Light Mode' : 'Dark Mode';
+    };
+
+    viewToggle.onclick = () => {
+      cardView = !cardView;
+      notesContainer.className = `notes-container ${cardView ? 'card-view' : 'list-view'}`;
+      viewToggle.textContent = cardView ? 'List View' : 'Card View';
+    };
+
+    window.onload = loadNotes;
+  </script>
+</body>
+</html>
