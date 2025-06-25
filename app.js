@@ -9,7 +9,7 @@ function login() {
   auth.signInWithEmailAndPassword(email, password)
     .then(userCredential => {
       alert("Logged in!");
-      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html/";  // Redirect to the main notes page
+      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html";  // Redirect to the main notes page
     })
     .catch(error => {
       alert(error.message);  // Show error message if login fails
@@ -24,7 +24,7 @@ function signup() {
   auth.createUserWithEmailAndPassword(email, password)
     .then(userCredential => {
       alert("Account created!");
-      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html/";  // Redirect to the main notes page
+      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html";  // Redirect to the main notes page
     })
     .catch(error => {
       alert(error.message);  // Show error message if signup fails
@@ -37,7 +37,7 @@ function googleLogin() {
   auth.signInWithPopup(provider)
     .then(result => {
       alert("Logged in with Google!");
-      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html/";  // Redirect to the main notes page
+      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html";  // Redirect to the main notes page
     })
     .catch(error => {
       alert(error.message);  // Show error message if Google login fails
