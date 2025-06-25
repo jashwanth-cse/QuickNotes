@@ -37,7 +37,7 @@ function googleLogin() {
   auth.signInWithPopup(provider)
     .then(result => {
       alert("Logged in with Google!");
-      window.location.href = "https://jashwanth-cse.github.io/QuickNotes/main_notes.html";  // Redirect to the main notes page
+      window.location.href = "main_notes.html";  // Redirect to the main notes page
     })
     .catch(error => {
       alert(error.message);  // Show error message if Google login fails
